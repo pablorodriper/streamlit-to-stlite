@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>stlite app</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.34.0/build/stlite.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.34.0/build/stlite.js"></script>
+    <script>
+      stlite.mount(
+        {
+            requirements: [],
+            entrypoint: "app.py",
+            files: {
+                "app.py": `
+import os
+import streamlit as st
+from io import StringIO
+
+st.set_page_config(
+        page_title="Streamlit to Stlite Converter",
+        page_icon="🍅",
+    )
+
+st.title("🍅 Streamlit to Stlite Converter")
+st.write("Esta app sirve para crear archivos de stlite a partir de un proyecto Python.")
+
+
+requirements = st.file_uploader(f"Sube aquí los requirements:",
+                                help="", 
+                                accept_multiple_files=False, 
+                                type=["txt"],
+                                key=f"req")
+if requirements:
+    stringio = StringIO(requirements.getvalue().decode("utf-8"))
+    requirements_text = stringio.read().splitlines()
+else:
+    requirements_text = []
+
+
+entry_point = st.file_uploader(f"Sube aquí tu archivo de entry_point:",
+                                help="", 
+                                accept_multiple_files=False, 
+                                type=["py"],
+                                key=f"entry")
+if entry_point:
+    entry_point_io = StringIO(entry_point.getvalue().decode("utf-8"))
+    entry_point_text = '            entrypoint: \"' + entry_point.name + '\",' + os.linesep + '\
+            files: {' + os.linesep + '    \
+            \"' + entry_point.name + '\": \`' + os.linesep + entry_point_io.read() + '\`,' + os.linesep 
+else:
+    entry_point_text = ""
+
+
+other_files = st.file_uploader(f"Sube aquí el resto de archivos .py:",
+                                help="", 
+                                accept_multiple_files=True, 
+                                type=["py"],
+                                key=f"other")
+if other_files:
+    other_files_text = ""
+    for uploaded_file in other_files:
+        uploaded_file_io = StringIO(uploaded_file.getvalue().decode("utf-8"))
+        tmp = '\"' + uploaded_file.name + '\": \`' + os.linesep + uploaded_file_io.read() + '\`,' + os.linesep 
+        other_files_text = other_files_text + tmp
+else:
+    other_files_text = ""
+
+if other_files and not entry_point:
+    st.warning("ATENCIÓN! Debes añadir algún archivo como entry point!", icon="⚠️")
+
+st.write("---")
+
+start = '\<!DOCTYPE html\>' + os.linesep + '\
+\<html\>' + os.linesep + '\
+  \<head\>' + os.linesep + '\
+    \<meta charset=\"UTF-8\" /\>' + os.linesep + '\
+    \<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" /\>' + os.linesep + '\
+    \<meta' + os.linesep + '\
+      name=\"viewport\"' + os.linesep + '\
+      content=\"width=device-width, initial-scale=1, shrink-to-fit=no\"' + os.linesep + '\
+    /\>' + os.linesep + '\
+    \<title\>stlite app\</title\>' + os.linesep + '\
+    \<link' + os.linesep + '\
+      rel=\"stylesheet\"' + os.linesep + '\
+      href=\"https://cdn.jsdelivr.net/npm/@stlite/mountable@0.34.0/build/stlite.css\"' + os.linesep + '\
+    /\>' + os.linesep + '\
+  \</head\>' + os.linesep + '\
+  \<body\>' + os.linesep + '\
+    \<div id=\"root\"\>\</div\>' + os.linesep + '\
+    \<script src=\"https://cdn.jsdelivr.net/npm/@stlite/mountable@0.34.0/build/stlite.js\"\>\</script\>' + os.linesep + '\
+    \<script\>' + os.linesep + '\
+      stlite.mount(' + os.linesep + '\
+        {' + os.linesep + '\
+            requirements: '+ str(requirements_text) + ',' + os.linesep
+
+end = "            }," + os.linesep + "\
+        }," + os.linesep + '\
+        document.getElementById(\"root\")' + os.linesep + "\
+    );" + os.linesep + "\
+    \<\/script\>" + os.linesep + "\
+  \<\/body\>" + os.linesep + "\
+\<\/html\>"
+
+st.code(start + entry_point_text + other_files_text + end, "javascript")
+`,
+            },
+        },
+        document.getElementById("root")
+    );
+    </script>
+  </body>
+</html>
